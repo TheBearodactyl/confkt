@@ -1,6 +1,6 @@
 package org.bearo.confkt.comfy
 
-import org.bearo.Validator
+import org.bearo.confkt.Validator
 import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.CLASS)
