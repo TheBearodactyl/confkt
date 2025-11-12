@@ -1,4 +1,4 @@
-package org.bearo
+package org.bearo.confkt
 
 sealed class ConfigResult<out T> {
     data class Success<T>(val value: T, val metadata: ConfigMetadata) : ConfigResult<T>()

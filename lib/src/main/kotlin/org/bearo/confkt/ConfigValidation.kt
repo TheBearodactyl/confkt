@@ -1,12 +1,18 @@
-package org.bearo
+package org.bearo.confkt
 
 import java.net.URI
 import kotlin.reflect.KClass
 
+/**
+ * A validator for a configuration setting.
+ */
 interface Validator<T> {
     fun validate(value: T): ValidationResult
 }
 
+/**
+ * Whether a setting is valid according to a validator.
+ */
 sealed class ValidationResult {
     object Valid : ValidationResult()
     data class Invalid(val message: String) : ValidationResult()

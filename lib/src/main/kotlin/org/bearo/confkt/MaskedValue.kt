@@ -1,4 +1,4 @@
-package org.bearo
+package org.bearo.confkt
 
 import kotlinx.serialization.Serializable
 

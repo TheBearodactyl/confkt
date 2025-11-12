@@ -1,4 +1,4 @@
-package org.bearo
+package org.bearo.confkt
 
 import com.akuleshov7.ktoml.Toml
 import com.akuleshov7.ktoml.TomlInputConfig
@@ -8,6 +8,11 @@ import java.nio.file.Paths
 import kotlin.reflect.KClass
 import kotlin.reflect.full.primaryConstructor
 
+/**
+ * The configuration loader.
+ *
+ * @param cfgClass The class to use for (de)serialization.
+ */
 class ConfigLoader<T : Any>(
     private val cfgClass: KClass<T>, private val options: ConfigLoaderOptions = ConfigLoaderOptions()
 ) {
@@ -20,6 +25,11 @@ class ConfigLoader<T : Any>(
 
     private val toml = Toml(inputConfig = TomlInputConfig(ignoreUnknownNames = options.ignoreUnknownKeys))
 
+    /**
+     * Load each available layer and parses into `T`
+     *
+     * @return ConfigResult.Success(T) on success, ConfigResult.Failure(e) on failure
+     */
     fun load(): ConfigResult<T> {
         val errors = mutableListOf<ConfigError>()
         val sources = mutableMapOf<String, ConfigLayer>()
@@ -219,7 +229,9 @@ class ConfigLoader<T : Any>(
     }
 
     private fun constructInstance(
-        values: Map<String, Any?>, sources: Map<String, ConfigLayer>, errors: MutableList<ConfigError>
+        values: Map<String, Any?>,
+        sources: Map<String, ConfigLayer>,
+        errors: MutableList<ConfigError>,
     ): T {
         val constructor = cfgClass.primaryConstructor
             ?: throw IllegalArgumentException("Config class must have a primary constructor")
@@ -245,6 +257,14 @@ class ConfigLoader<T : Any>(
         return constructor.callBy(params.filterValues { it != null })
     }
 
+    /**
+     * Parse a JSON string into a map.
+     *
+     * @param content The JSON to parse.
+     * @return The decoded version of `content`
+     *
+     * @see parseToml
+     */
     private fun parseJson(content: String): Map<String, Any?> {
         return try {
             json.decodeFromString<Map<String, kotlinx.serialization.json.JsonElement>>(content)
@@ -254,6 +274,14 @@ class ConfigLoader<T : Any>(
         }
     }
 
+    /**
+     * Parse a TOML string into a map.
+     *
+     * @param content The TOML to parse.
+     * @return The decoded version of `content`
+     *
+     * @see parseJson
+     */
     private fun parseToml(content: String): Map<String, Any?> {
         return try {
             toml.decodeFromString(kotlinx.serialization.serializer(), content)
@@ -281,6 +309,13 @@ class ConfigLoader<T : Any>(
         }
     }
 
+    /**
+     * Convert a value to another type.
+     *
+     * @param value The value being converted
+     * @param targetType The type being converted to
+     * @return The converted value
+     */
     @Suppress("UNCHECKED_CAST")
     private fun convertValue(value: Any?, targetType: KClass<*>?): Any? {
         if (value == null || targetType == null) return value
@@ -317,6 +352,9 @@ class ConfigLoader<T : Any>(
         }
     }
 
+    /**
+     * The result of loading a configuration layer.
+     */
     private sealed class LayerResult {
         data class Success(val values: Map<String, Any?>) : LayerResult()
         data class Error(val error: ConfigError) : LayerResult()
@@ -324,18 +362,65 @@ class ConfigLoader<T : Any>(
     }
 }
 
+/**
+ * Configuration options for the loader.
+ */
 data class ConfigLoaderOptions(
+    /**
+     * The name of the app that is being configured.
+     */
     val appName: String? = null,
+
+    /**
+     * The path to the config directory for local configurations.
+     */
     val localConfigDirectory: java.nio.file.Path? = null,
+
+    /**
+     * The path to the config directory for global configurations.
+     */
     val globalConfigDirectory: java.nio.file.Path? = null,
+
+    /**
+     * The prefix for environment variable configurations.
+     */
     val envVarPrefix: String? = null,
+
+    /**
+     * The prefix for system properties (`-D` flags)
+     */
     val systemPropertyPrefix: String? = null,
+
+    /**
+     * A list of command line options and their defaults.
+     */
     val commandLineArgs: Array<String>? = null,
+
+    /**
+     * Whether to ignore unknown configuration keys.
+     */
     val ignoreUnknownKeys: Boolean = true,
+
+    /**
+     * Whether to be lenient about parsing.
+     */
     val lenientParsing: Boolean = true,
+
+    /**
+     * Whether to fail if no config file is found.
+     */
     val failOnMissingFile: Boolean = false,
+
+    /**
+     * Exit immediately if an error occurs.
+     */
     val failFast: Boolean = false
 ) {
+    /**
+     * Check if 2 configuration setting definitions are the same.
+     *
+     * @param other The other `ConfigLoaderOptions` to compare against.
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

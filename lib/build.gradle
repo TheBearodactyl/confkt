@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     id 'java-library'
+    id 'maven-publish'
+    id 'com.google.devtools.ksp' version '2.2.10-2.0.2'
 }
 
 repositories {
@@ -17,6 +19,10 @@ dependencies {
     implementation libs.ktfile
     implementation libs.ktreflect
     implementation libs.kxjson
+    implementation 'com.google.dagger:dagger-compiler:2.51.1'
+    ksp 'com.google.dagger:dagger-compiler:2.51.1'
+    implementation "com.squareup:kotlinpoet:2.0.0"
+    implementation "com.squareup:kotlinpoet-ksp:2.0.0"
 }
 
 java {
